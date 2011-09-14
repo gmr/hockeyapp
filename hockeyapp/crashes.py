@@ -6,6 +6,7 @@ __author__ = 'Gavin M. Roy'
 __email__ = 'gmr@myyearbook.com'
 __since__ = '2011-09-13'
 
+import urllib
 from . import api
 
 class CrashList(api.APIRequest):
@@ -44,4 +45,5 @@ class CrashList(api.APIRequest):
         :returns: str
 
         """
-        return api.BASE_URI + 'apps/%s/crashes' % self._app_id
+        params = urllib.urlencode(self.parameters)
+        return api.BASE_URI + 'apps/%s/crashes?%s' % (self._app_id, params)
