@@ -41,6 +41,10 @@ def parse_options():
                       action="store_true", dest="list_crashes",
                       help="List the applications available at HockeyApp")
 
+    parser.add_option("-o", "--offset",
+                      action="store", dest="offset", default=1,
+                      help="Use an offset for the crash list")
+
     parser.add_option("-i", "--app-id",
                       action="store", dest="app_id",
                       help="The application identifier at HockeyApp")
@@ -49,9 +53,10 @@ def parse_options():
                       action="store", dest="detail",
                       help="Get the detail for a crash ID at HockeyApp")
 
-    parser.add_option("-o", "--offset",
-                      action="store", dest="offset", default=1,
-                      help="Use an offset for the crash list")
+    parser.add_option("-m", "--mode",
+                      action="store", dest="mode", default="text",
+                      help="Set the mode for retreiving the detail " + 
+                           "for a crash [log, text]")
 
     parser.add_option("-v", "--verbose",
                       action="store_true", dest="verbose", default=False,
@@ -89,7 +94,8 @@ def main():
     if options.detail:
         crash_detail = crashlog.CrashLog(options.api_key,
                                          options.app_id,
-                                         options.detail)
+                                         options.detail,
+                                         options.mode)
         print crash_detail.execute()
         return
 
