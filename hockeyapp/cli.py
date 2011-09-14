@@ -87,7 +87,7 @@ def main():
         return
 
     if options.list_crashes:
-        crash_list = crashes.CrashList(options.api_key, options.app_id)
+        crash_list = crashes.CrashList(options.api_key, options.app_id, options.offset)
         print crash_list.execute()
         return
 
