@@ -11,9 +11,20 @@ import optparse
 import sys
 
 from . import __version__
+from .api import APIError
 from . import apps
 from . import crashes
 from . import crashlog
+from . import team
+
+def print_api_error(e):
+    """ Print an APIError exception to stderr
+
+    :param e: The exception
+    :type e: APIError
+
+    """
+    sys.stderr.write("\nERROR: %s\n" % str(e))
 
 def parse_options():
     """Parse commandline options.
@@ -36,6 +47,10 @@ def parse_options():
     parser.add_option("-a", "--list-applications",
                       action="store_true", dest="list_applications",
                       help="List the applications available at HockeyApp")
+
+    parser.add_option("-u", "--list-users",
+                      action="store_true", dest="list_users",
+                      help="List users associated with the specified HockeyApp")
 
     parser.add_option("-c", "--list-crashes",
                       action="store_true", dest="list_crashes",
@@ -83,12 +98,34 @@ def main():
 
     if options.list_applications:
         app_list = apps.AppList(options.api_key)
-        print app_list.execute()
+        try:
+            print app_list.execute()
+        except APIError as e:
+            print_api_error(e)
+
+        return
+
+    if options.list_users:
+        if not options.app_id:
+            sys.stderr.write('\nERROR: Missing App ID\n\n')
+            parser.print_help()
+            sys.exit(1)
+
+        user_list = team.AppUsers(options.api_key, options.app_id)
+        try:
+            print user_list.execute()
+        except APIError as e:
+            print_api_error(e)
+
         return
 
     if options.list_crashes:
         crash_list = crashes.CrashList(options.api_key, options.app_id, options.offset)
-        print crash_list.execute()
+        try:
+            print crash_list.execute()
+        except APIError as e:
+           print_api_error(e)
+
         return
 
     if options.detail:
@@ -96,7 +133,11 @@ def main():
                                          options.app_id,
                                          options.detail,
                                          options.mode)
-        print crash_detail.execute()
+        try:
+            print crash_detail.execute()
+        except APIError as e:
+            sys.stderr.write("\nERROR: %s\n\n" % str(e))
+
         return
 
     sys.stderr.write('\nERROR: You must select an action to take\n\n')
