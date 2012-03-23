@@ -56,6 +56,10 @@ def parse_options():
                       action="store_true", dest="list_crashes",
                       help="List the applications available at HockeyApp")
 
+    parser.add_option("--add-app-user",
+                      action="store_true", dest="add_app_user",
+                      help="Add a user to a HockeyApp")
+
     parser.add_option("-o", "--offset",
                       action="store", dest="offset", default=1,
                       help="Use an offset for the crash list")
@@ -67,6 +71,10 @@ def parse_options():
     parser.add_option("-d", "--detail",
                       action="store", dest="detail",
                       help="Get the detail for a crash ID at HockeyApp")
+
+    parser.add_option("-e", "--email",
+                      action="store", dest="email",
+                      help="User email address")
 
     parser.add_option("-m", "--mode",
                       action="store", dest="mode", default="text",
@@ -114,6 +122,25 @@ def main():
         user_list = team.AppUsers(options.api_key, options.app_id)
         try:
             print user_list.execute()
+        except APIError as e:
+            print_api_error(e)
+
+        return
+
+    if options.add_app_user:
+        if not options.app_id:
+            sys.stderr.write('\nERROR: Missing App ID\n\n')
+            parser.print_help()
+            sys.exit(1)
+
+        if not options.email:
+            sys.stderr.write('\nERROR: Missing Email Address\n\n')
+            parser.print_help()
+            sys.exit(1)
+
+        add_user = team.AppAddUser(options.api_key, options.app_id, options.email)
+        try:
+            print add_user.execute()
         except APIError as e:
             print_api_error(e)
 
