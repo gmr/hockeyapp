@@ -37,7 +37,7 @@ def _request(api_key, method, uri, parameters):
         params = urllib.urlencode(parameters)
     else:
         params = None
-    logger.debug('Requesting: %s?%s with headers: %r', uri, params, headers)
+    logger.debug('Sending %s: %s?%s with headers: %r', method, uri, params, headers)
     connection = httplib.HTTPSConnection(SERVER)
     connection.request(method, uri, params, headers)
 
@@ -111,7 +111,7 @@ class APIRequest(object):
         self._logger = logging.getLogger(__name__)
         self._api_key = api_key
         self._key = None
-        self.method = 'GET'
+        self._method = 'GET'
         self._logger.debug('Initialized an %s instance with the api key: %s',
                            self.__class__.__name__, self._api_key)
 
@@ -123,15 +123,16 @@ class APIRequest(object):
         :raises APIError: if status code is not 200
 
         """
-        status, data = _request(self._api_key, self.method, self.path, self.parameters)
-        if status == 200:
+        status, data = _request(self._api_key, self._method, self.path, self.parameters)
+        if status >= 200 and status < 300:
             if isinstance(data, dict) and self._key:
                 return data[self._key]
             return data
         else:
             if isinstance(data, dict):
-                data = data['errors']
-            raise APIError(data)
+                if 'errors' in data:
+                    data = data['errors']
+                raise APIError(data)
 
         return data
 
