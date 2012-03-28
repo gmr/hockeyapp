@@ -87,4 +87,99 @@ class AppAddUser(api.APIRequest):
         """
         return api.BASE_URI + 'apps/%s/app_users' % self._app_id 
 
+    @property
+    def first_name(self):
+        """Returns the user's first name
+
+        :returns: str
+
+        """
+        return self._first_name
+
+    @first_name.setter
+    def first_name(self, name):
+        """set the user's first name
+
+        :param name: name
+        :type name: str
+
+        """
+        self._first_name = name
+
+    @property
+    def last_name(self):
+        """Returns the user's last name
+
+        :returns: str
+
+        """
+        return self._last_name
+
+    @last_name.setter
+    def last_name(self, name):
+        """set the user's last name
+
+        :param name: name
+        :type name: str
+
+        """
+        self._last_name = name
+
+    @property
+    def message(self):
+        """Returns the message to send to the user in the invitation
+
+        :returns: str
+
+        """
+        return self._message 
+
+    @message.setter
+    def message(self, msg):
+        """set the message to send in the invite
+
+        :param msg: the message
+        :type msg: str
+
+        """
+        self._message = msg
+
+    @property
+    def role(self):
+        """Returns the user's role constant
+
+        :returns: int
+
+        """
+        return self._role
+
+    @role.setter
+    def role(self, role):
+        """set the user's role. One of 0 - owner, 1 - developer, 2 - member, 3 - tester
+
+        :param role: role constant
+        :type role: int
+
+        """
+
+        self._role = int(role)
+
+    @property
+    def tags(self):
+        """Returns the user's tags
+
+        :returns: str
+
+        """
+        return self._tags
+
+    @tags.setter
+    def tags(self, tags):
+        """set the user's tags
+
+        :param tags: tags (comma delimited)
+        :type tags: str
+
+        """
+        self._tags = tags
 
