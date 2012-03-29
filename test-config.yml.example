@@ -1,3 +1,8 @@
 api_key_read_only : <READ-ONLY API KEY>
 api_key_read_write : <READ-WRITE API KEY>
 app_id: <An existing APP ID>
+user :
+	first: FIRST
+	last: LAST
+	email: your.test.email@test.com 
+	role: 2
