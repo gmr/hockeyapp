@@ -183,3 +183,31 @@ class AppAddUser(api.APIRequest):
         """
         self._tags = tags
 
+class AppDeleteUser(api.APIRequest):
+
+    def __init__(self, api_key, app_id, user_id):
+        """Create the AppDeleteUser request object.
+
+        :param api_key: HockeyApp API key
+        :type api_key: str
+        :param app_id: Application ID
+        :type app_id: str
+        :param user_id: User id
+        :type user_id: int
+
+        """
+        api.APIRequest.__init__(self, api_key)
+        self._key = 'app_users'
+        self._app_id = app_id
+        self._user_id = user_id
+        self._method = 'DELETE'
+
+    @property
+    def path(self):
+        """Returns the request path
+
+        :returns: str
+
+        """
+        return api.BASE_URI + 'apps/%s/app_users/%s' % (self._app_id, self._user_id) 
+

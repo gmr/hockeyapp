@@ -21,6 +21,10 @@ class TestConfig:
     def app_id(self):
         return self.data["app_id"]
 
+    @property
+    def user(self):
+        return self.data['user']
+
 class HockeyAppTestCase(TestCase):
 
     def setUp(self):
