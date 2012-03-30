@@ -42,19 +42,36 @@ class AppVersions(api.APIRequest):
 
 class AppVersionDelete(api.APIRequest):
 
-    def __init__(self, api_key, app_id, version_id):
+    def __init__(self, api_key, app_id, version_id, purge=False):
         """Create the AppDeleteVersion request object.
 
         :param api_key: HockeyApp API key
         :type api_key: str
         :param app_id: Application ID
         :type app_id: str
+        :param purge: Remove permanently
+        :param purge: boolean
 
         """
         api.APIRequest.__init__(self, api_key)
         self._method = 'DELETE'
         self._app_id = app_id
         self._version_id = version_id
+        self._purge = purge
+
+    @property
+    def parameters(self):
+        """Returns the request parameters
+
+        :returns: dict
+
+        """
+        params = {}
+
+        if (self._purge):
+            params['strategy'] = 'purge'
+
+        return params
 
     @property
     def path(self):
