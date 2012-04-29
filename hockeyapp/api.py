@@ -10,10 +10,31 @@ import json
 import logging
 import httplib
 import urllib
+
 import urlparse
+
+from types import FileType
 
 SERVER = 'rink.hockeyapp.net'
 BASE_URI = '/api/2/'
+
+def _requires_multipart(params):
+    """Determine if multipart request needs to be made
+
+    :param params: Dictionary of parameters to send
+    :type params: dict
+
+    :returns: True if params contain file objects to send
+
+    """
+    if not params:
+        return False
+
+    for value in params.values():
+        if isinstance(value, FileType):
+            return True;
+
+    return False
 
 
 def _request(api_key, method, uri, parameters):
@@ -30,16 +51,24 @@ def _request(api_key, method, uri, parameters):
     :returns: tuple of headers dict and json decoded response data
 
     """
+
+    if _requires_multipart(parameters):
+        return _dispatch_multipart_request(api_key, method, uri, parameters)
+    
+    return _dispatch_request(api_key, method, uri, parameters)
+
+def _dispatch_request(api_key, method, uri, parameters):
+
     logger = logging.getLogger('hockeyapp.api')
     headers = {'X-HockeyAppToken': api_key, 'Accept': '*/*'}
     if parameters:
         logger.debug('Encoding parameters: %r', parameters)
         params = urllib.urlencode(parameters)
-    else:
-        params = None
-    logger.debug('Sending %s: %s?%s with headers: %r', method, uri, params, headers)
+        uri = "%s?%s" % (uri, params)
+
+    logger.debug('Sending %s: %s with headers: %r', method, uri, headers)
     connection = httplib.HTTPSConnection(SERVER)
-    connection.request(method, uri, params, headers)
+    connection.request(method, uri, None, headers)
 
     # Get the response
     response = connection.getresponse()
@@ -79,6 +108,61 @@ def _request(api_key, method, uri, parameters):
         data = json.loads(data)
 
     return response.status, data
+
+def _dispatch_multipart_request(api_key, method, uri, parameters):
+    
+    logger = logging.getLogger('hockeyapp.api')
+
+    if method != 'POST':
+        raise APIError('Multi-part support is only provided for POST')
+
+    import urllib2
+    from poster.encode import multipart_encode
+    from poster.streaminghttp import register_openers
+
+    #register streaming http handlers with urlib2
+    register_openers()
+
+    logger.debug("Sending with parameters %r" % parameters)
+
+    simple_params = {}
+    file_params = {}
+
+    for key in parameters:
+        if isinstance(parameters[key], file):
+            file_params[key] = parameters[key]
+        else:
+            simple_params[key] = parameters[key]
+
+
+    datagen, headers = multipart_encode(file_params)
+    headers['X-HockeyAppToken'] = api_key
+    headers['Accept'] = '*/*'
+
+    if len(simple_params) > 0:
+        uri = "%s?%s" % (uri, urllib.urlencode(simple_params))
+
+    url = "https://%s%s" % (SERVER, uri)
+    data = str().join(datagen) #To get around the __len__ problem sending datagen directly
+    request = urllib2.Request(url, data, headers)
+  
+    result = None
+    status = None
+    h = urllib2.HTTPHandler(debuglevel=1)
+    opener = urllib2.build_opener(h)
+    try:
+        req = opener.open(request)
+        result = req.read()
+        if result and req.headers.getheader('content-type').find('application/json') >= 0:
+            result = json.loads(result)
+        status = req.code
+    except urllib2.HTTPError as e:
+        result = e.read()
+        if result and e.headers['content-type'].find('application/json') >= 0:
+            result = json.loads(result)
+        status = e.code
+
+    return status, result 
 
 class APIError(Exception):
     def __init__(self, value):
@@ -124,6 +208,7 @@ class APIRequest(object):
 
         """
         status, data = _request(self._api_key, self._method, self.path, self.parameters)
+        
         if status >= 200 and status < 300:
             if isinstance(data, dict) and self._key:
                 return data[self._key]

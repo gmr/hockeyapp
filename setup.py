@@ -22,4 +22,8 @@ setup(name='hockeyapp',
       url='http://github.com/gmr/hockeyapp',
       packages=['hockeyapp'],
       entry_points=dict(console_scripts=['hockeyapp-cli=hockeyapp.cli:main']),
-      zip_safe=True)
+      zip_safe=True,
+      install_requires=[
+        'poster'
+      ])
+

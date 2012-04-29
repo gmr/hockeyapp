@@ -4,8 +4,8 @@ __init__.py
 """
 __author__ = 'Gavin M. Roy'
 __email__ = 'gmr@myyearbook.com'
-__since__ = '2012-03-27'
-__version__ = '0.3'
+__since__ = '2012-04-03'
+__version__ = '0.3.1'
 
 import api
 import apps
