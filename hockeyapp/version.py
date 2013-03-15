@@ -87,7 +87,7 @@ class AppVersionAdd(api.APIRequest):
     NOTE_TYPE_MARKDOWN = 1
     NOTE_TYPE_TEXTILE = 0
 
-    def __init__(self, api_key, app_id, ipa, dsym=None, notes = None, notes_type = 1, notify = 1, status = 2):
+    def __init__(self, api_key, app_id, ipa, dsym=None, notes = None, notes_type = 1, notify = 1, status = 2, tags = None):
         """Create the AppVersionAdd request object.
 
         :param api_key: HockeyApp API key
@@ -106,6 +106,8 @@ class AppVersionAdd(api.APIRequest):
         :type notify: bool
         :param downloadable: Allow download Default: True. (optional)
         :type downloadable: bool
+        :param tags: Restrict download to comma separated list of tags
+        :type tags: str
     
         """
         api.APIRequest.__init__(self, api_key)
@@ -117,6 +119,7 @@ class AppVersionAdd(api.APIRequest):
         self._notes_type = notes_type
         self._notify = notify
         self._status = status
+        self._tags = tags
 
     @property
     def parameters(self):
@@ -141,6 +144,9 @@ class AppVersionAdd(api.APIRequest):
             params['notify'] = self._notify
 
         params['status'] = self._status
+
+        if self._tags:
+            params['tags'] = self._tags
 
         return params
 
@@ -192,3 +198,11 @@ class AppVersionAdd(api.APIRequest):
     @downloadable.setter
     def downloadable(self, v):
         self._status = 2 if v else 1
+
+    @property
+    def tags(self):
+        return self._tags
+
+    @tags.setter
+    def tags(self, tags):
+        self._tags = tags
