@@ -16,6 +16,7 @@ from . import apps
 from . import crashes
 from . import crashlog
 from . import team
+from . import version
 
 
 def print_api_error(e):
@@ -81,8 +82,26 @@ def parse_args():
     d.set_defaults(func=lambda a:
             show(crashlog.CrashLog(a.api_key, a.app_id, a.crash_id, a.mode)))
 
+    lv = subparsers.add_parser("list-versions",
+            help="List the versions of an app")
+    lv.set_defaults(func=lambda options:
+            show(version.AppVersions(options.api_key, options.app_id)))
+
+    vd = subparsers.add_parser("version-delete",
+            help="Delete a specified version")
+    vd.set_defaults(func=lambda a:
+            show(version.AppVersionDelete(a.api_key, a.app_id, a.version_id, a.purge)))
+
+    va = subparsers.add_parser("version-add",
+            help="Add a new version of an app")
+    types = dict(textile=0, markdown=1)
+    va.set_defaults(func=lambda a:
+            show(version.AppVersionAdd(a.api_key, a.app_id, a.ipa, a.dsym,
+                 a.notes.read(), types[a.notes_type],
+                 a.nonotify and 0 or 1, a.notdownloadable and 1 or 2, a.tags)))
+
     # Arguments common for many actions
-    for p in (lu, lc, aau, d):
+    for p in (lu, lc, aau, d, lv, vd, va):
         p.add_argument("app_id",
                        help="The application identifier at HockeyApp")
 
@@ -99,6 +118,30 @@ def parse_args():
     d.add_argument("-m", "--mode",
             default="text", choices=['log', 'text'],
             help="Set the mode for retreiving the detail for a crash")
+
+    vd.add_argument("version_id",
+            help="The version ID")
+    vd.add_argument("-p", "--purge",
+            action="store_true",
+            help="Remove permanentely")
+
+    va.add_argument("ipa", type=argparse.FileType('r'),
+            help="The ipa or apk to upload")
+    va.add_argument("--dsym", type=argparse.FileType('r'),
+            help="The .dSYMzip or mapping.txt file")
+    va.add_argument("notes", type=argparse.FileType('r'),
+            help="A file containing the release notes")
+    va.add_argument("--notes_type",
+            default="markdown", choices=types,
+            help="How to parse the release notes")
+    va.add_argument("--nonotify",
+            action="store_true",
+            help="Don't notify tester")
+    va.add_argument("--notdownloadable",
+            action="store_true",
+            help="Don't allow downloads")
+    va.add_argument("--tags",
+            help="Restrict download to a comma separated list of tags")
 
     # Print help message when there's no subcommand
     if len(sys.argv)==1:

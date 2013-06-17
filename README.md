@@ -29,6 +29,9 @@ CLI Usage
             list-crashes        List crashes associated with the specified HockeyApp
             add-app-user        Add a user to a HockeyApp
             detail              Get the detail for a crash ID at HockeyApp
+            list-versions       List the versions of an app
+            version-delete      Delete a specified version
+            version-add         Add a new version of an app
 
 Example usage
 -------------
