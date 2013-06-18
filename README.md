@@ -19,16 +19,22 @@ CLI Usage
           --version             show program's version number and exit
           -h, --help            show this help message and exit
           -k API_KEY, --api-key=API_KEY
-                                Run in the foreground in debug mode.
+                                Supply the API Token from hockeyapp.net
           -a, --list-applications
                                 List the applications available at HockeyApp
-          -c, --list-crashes    List the applications available at HockeyApp
+          -u, --list-users      List users associated with the specified HockeyApp
+          -c, --list-crashes    List crashes associated with the specified HockeyApp
+          --add-app-user        Add a user to a HockeyApp
+          -o OFFSET, --offset=OFFSET
+                                Use an offset for the crash list
           -i APP_ID, --app-id=APP_ID
                                 The application identifier at HockeyApp
           -d DETAIL, --detail=DETAIL
                                 Get the detail for a crash ID at HockeyApp
-          -o OFFSET, --offset=OFFSET
-                                Use an offset for the crash list
+          -e EMAIL, --email=EMAIL
+                                User email address
+          -m MODE, --mode=MODE  Set the mode for retreiving the detail for a crash
+                                [log, text]
           -v, --verbose         Turn on debug mode
 
 

@@ -42,7 +42,7 @@ def parse_options():
 
     parser.add_option("-k", "--api-key",
                       action="store", dest="api_key",
-                      help="Run in the foreground in debug mode.")
+                      help="Supply the API Token from hockeyapp.net")
 
     parser.add_option("-a", "--list-applications",
                       action="store_true", dest="list_applications",
@@ -54,7 +54,7 @@ def parse_options():
 
     parser.add_option("-c", "--list-crashes",
                       action="store_true", dest="list_crashes",
-                      help="List the applications available at HockeyApp")
+                      help="List crashes associated with the specified HockeyApp")
 
     parser.add_option("--add-app-user",
                       action="store_true", dest="add_app_user",
