@@ -98,7 +98,7 @@ def parse_args():
     va.set_defaults(func=lambda a:
             show(version.AppVersionAdd(a.api_key, a.app_id, a.ipa, a.dsym,
                  a.notes.read(), types[a.notes_type],
-                 a.nonotify and 0 or 1, a.notdownloadable and 1 or 2, a.tags)))
+                 not a.nonotify, not a.notdownloadable, a.tags)))
 
     # Arguments common for many actions
     for p in (lu, lc, aau, d, lv, vd, va):
