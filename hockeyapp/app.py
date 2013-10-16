@@ -61,6 +61,7 @@ class Application(api.APIRequest):
 
 # Deprecated classes for transitional support, to be removed in future versions
 
+
 class AppList(Application):
     """Return the application list for a given token"""
 

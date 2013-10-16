@@ -48,7 +48,7 @@ class APIRequest(object):
 
         """
         if not self.TOKEN_PATTERN.match(token):
-            raise ValueError('The API token should be a 32 char hex digest str')
+            raise ValueError('The API token should be a 32 char hex digest')
         self.headers = {'Accept': 'application/json',
                         'X-HockeyAppToken': token}
 
