@@ -3,8 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to hockeyapp's documentation!
-=====================================
+HockeyApp Client
+================
+API and command-line client for managing applications, users, and crashes at HockeyApp.
 
 Contents:
 

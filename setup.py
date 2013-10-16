@@ -13,7 +13,8 @@ console_scripts = ['hockeyapp-cli=hockeyapp.cli:main']
 
 setuptools.setup(name='hockeyapp',
                  version=__version__,
-                 description='Python client for the HockeyApp.net API',
+                 description='API and command-line client for managing '
+                             'applications, users, and crashes at HockeyApp',
                  long_description=open('README.rst').read(),
                  author='Gavin M. Roy',
                  author_email='gavinmroy@gmail.com',
