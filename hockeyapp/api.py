@@ -84,7 +84,7 @@ class APIRequest(object):
         """
         LOGGER.debug('Response status code: %s', response.status_code)
         if 200 <= response.status_code <= 300:
-            if 'application/json' in response.headers:
+            if 'application/json' in response.headers['Content-Type']:
                 return response.json()
             return response.content
         if response.status_code == 404:
