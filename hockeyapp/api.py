@@ -36,7 +36,6 @@ class APIRequest(object):
     specific to the request.
 
     """
-    KEY = 'unset'
     SERVER = 'rink.hockeyapp.net'
     BASE_URI = '/api/2'
     TOKEN_PATTERN = re.compile('[a-f0-9]{32}')
@@ -49,7 +48,7 @@ class APIRequest(object):
         """
         if not self.TOKEN_PATTERN.match(token):
             raise ValueError('The API token should be a 32 char hex digest')
-        self.headers = {'Accept': 'application/json',
+        self.headers = {'Accept': 'application/json; text/plain;',
                         'X-HockeyAppToken': token}
 
     def _build_uri(self, path_parts):
@@ -61,36 +60,38 @@ class APIRequest(object):
         return 'https://%s%s/%s' % (self.SERVER, self.BASE_URI,
                                     '/'.join(path_parts))
 
-    def _get(self, uri_parts=None, key=None, data=None):
+    def _get(self, uri_parts=None, data=None):
         """Get data from the API
 
         :param list uri_parts: Parts of the URI to compose the URI
-        :param str key: The top level key of the JSON response to return
         :param dict data: Optional query parameters for the GET
-        :rtype: list
+        :rtype: list or dict
 
         """
         uri = self._build_uri(uri_parts) if uri_parts else self._uri
         LOGGER.debug('Performing HTTP GET to %s', uri)
         return self._response(requests.get(uri,
                                            headers=self.headers,
-                                           data=data),
-                              key or self.KEY)
+                                           data=data))
 
-    def _response(self, response, key):
+    def _response(self, response):
         """Process the API response
 
         :param requests.Response response: The request response
-        :param str key: The top level key of the JSON response to return
         :rtype: list
         :raise: hockeyapp.app.APIError
 
         """
         LOGGER.debug('Response status code: %s', response.status_code)
         if 200 <= response.status_code <= 300:
-            return response.json().get(key)
+            if 'application/json' in response.headers:
+                return response.json()
+            return response.content
+        if response.status_code == 404:
+            raise APIError({'404': ['URL Not Found: %s' % response.url]})
         if 'application/json' in response.headers:
             raise APIError(response.json().get('errors'))
+        LOGGER.debug(response.content)
         raise APIError('Not JSON')
 
     @property
