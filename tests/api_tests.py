@@ -4,7 +4,6 @@ Test the rabbitpy events class
 """
 import mock
 import httmock
-import requests
 try:
     import unittest2 as unittest
 except ImportError:
