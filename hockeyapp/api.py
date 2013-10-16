@@ -1,240 +1,103 @@
 """
-Base API Class and Request Functionality
+Extended by all API classes for communicating with the hockeyapp API
 
 """
-__author__ = 'Gavin M. Roy'
-__email__ = 'gmr@myyearbook.com'
-__since__ = '2011-09-12'
-
-import json
 import logging
-import httplib
-import urllib
+import re
+import requests
 
-import urlparse
+LOGGER = logging.getLogger(__name__)
 
-from types import FileType
-
-SERVER = 'rink.hockeyapp.net'
-BASE_URI = '/api/2/'
-
-def _requires_multipart(params):
-    """Determine if multipart request needs to be made
-
-    :param params: Dictionary of parameters to send
-    :type params: dict
-
-    :returns: True if params contain file objects to send
-
-    """
-    if not params:
-        return False
-
-    for value in params.values():
-        if isinstance(value, FileType):
-            return True;
-
-    return False
-
-
-def _request(api_key, method, uri, parameters):
-    """Make a request to the Hockeyapp API server
-
-    :param api_key: The API Key for the request
-    :type api_key: str
-    :param method: The HTTP method for the request.
-    :type method: str
-    :param uri: The URI to make a request for
-    :type uri: str
-    :param parameters: URL parameters
-    :type parameters: dict
-    :returns: tuple of headers dict and json decoded response data
-
-    """
-
-    if _requires_multipart(parameters):
-        return _dispatch_multipart_request(api_key, method, uri, parameters)
-    
-    return _dispatch_request(api_key, method, uri, parameters)
-
-def _dispatch_request(api_key, method, uri, parameters):
-
-    logger = logging.getLogger('hockeyapp.api')
-    headers = {'X-HockeyAppToken': api_key, 'Accept': '*/*'}
-    if parameters:
-        logger.debug('Encoding parameters: %r', parameters)
-        params = urllib.urlencode(parameters)
-        uri = "%s?%s" % (uri, params)
-
-    logger.debug('Sending %s: %s with headers: %r', method, uri, headers)
-    connection = httplib.HTTPSConnection(SERVER)
-    connection.request(method, uri, None, headers)
-
-    # Get the response
-    response = connection.getresponse()
-    logger.debug('Return Response: %i %s %r',
-                 response.status, response.reason, response.getheaders())
-
-    if response.status == 302:
-        connection.close()
-        location = response.getheader('location')
-        logger.debug('Making new request to %s', location)
-        parts = urlparse.urlparse(location)
-        if parts.scheme == 'http':
-            connection = httplib.HTTPConnection(parts.netloc)
-        elif parts.scheme == 'https':
-            connection = httplib.HTTPSConnection(parts.netloc)
-        else:
-            raise NotImplementedError('Unspported protocol scheme: %s',
-                                      parts.scheme)
-
-        logger.debug('%s', parts)
-
-        headers = {'Accept': '*/*'}
-        if parts.hostname.find('hockeyapp.net') > -1:
-            headers['X-HockeyAppToken'] = api_key
-
-        connection.request(method, parts.path, parts.params, headers)
-        response = connection.getresponse()
-        logger.debug('Return Response: %i %s %r',
-                     response.status, response.reason, response.getheaders())
-
-    # Read in the data from the response
-    data = response.read()
-    connection.close()
-
-    # If we have data, json decode it
-    if data and response.getheader('content-type').find('application/json') >= 0:
-        data = json.loads(data)
-
-    return response.status, data
-
-def _dispatch_multipart_request(api_key, method, uri, parameters):
-    
-    logger = logging.getLogger('hockeyapp.api')
-
-    if method != 'POST':
-        raise APIError('Multi-part support is only provided for POST')
-
-    import urllib2
-    from poster.encode import multipart_encode
-    from poster.streaminghttp import register_openers
-
-    #register streaming http handlers with urlib2
-    register_openers()
-
-    logger.debug("Sending with parameters %r" % parameters)
-
-    simple_params = {}
-    file_params = {}
-
-    for key in parameters:
-        if isinstance(parameters[key], file):
-            file_params[key] = parameters[key]
-        else:
-            simple_params[key] = parameters[key]
-
-
-    datagen, headers = multipart_encode(file_params)
-    headers['X-HockeyAppToken'] = api_key
-    headers['Accept'] = '*/*'
-
-    if len(simple_params) > 0:
-        uri = "%s?%s" % (uri, urllib.urlencode(simple_params))
-
-    url = "https://%s%s" % (SERVER, uri)
-    data = str().join(datagen) #To get around the __len__ problem sending datagen directly
-    request = urllib2.Request(url, data, headers)
-  
-    result = None
-    status = None
-    h = urllib2.HTTPHandler(debuglevel=1)
-    opener = urllib2.build_opener(h)
-    try:
-        req = opener.open(request)
-        result = req.read()
-        if result and req.headers.getheader('content-type').find('application/json') >= 0:
-            result = json.loads(result)
-        status = req.code
-    except urllib2.HTTPError as e:
-        result = e.read()
-        if result and e.headers['content-type'].find('application/json') >= 0:
-            result = json.loads(result)
-        status = e.code
-
-    return status, result 
 
 class APIError(Exception):
-    def __init__(self, value):
-        """Construct an APIError object
-        :param value: The error data returned from the remote call
+    """Raised when the Hockeyapp API returns an error for a request"""
+    def __repr__(self):
+        """Return a representation of the exception
+
+        :rtype: str
 
         """
-        self.value = value
+        return '<%s [%s]>' % (self.__class__.__name__,
+                              ', '.join(self.args[0].keys()))
 
     def __str__(self):
         """ Format exception data
 
-        :returns: the string representation of the errror
+        :returns: the string representation of the error
 
         """
-        m = ""
-        for k in self.value.keys():
-            m += "[%s]: %s\n" % (k, ", ".join(self.value[k]))
-        return m
+        return ', '.join(['[%s]: %s' %
+                          (key, ', '.join(self.args[0][key]))
+                          for key in self.args[0]])
+
 
 class APIRequest(object):
-    """Base Hockeyapp APIRequest Object"""
-    def __init__(self, api_key):
+    """Base class for all API requests. Set Class.KEY to the part of the path
+    specific to the request.
+
+    """
+    KEY = 'unset'
+    SERVER = 'rink.hockeyapp.net'
+    BASE_URI = '/api/2'
+    TOKEN_PATTERN = re.compile('[a-f0-9]{32}')
+
+    def __init__(self, token):
         """Construct the APIRequestObject
 
-        :param api_key: The API Key for the request
-        :type api_key: str
+        :param str token: The API token for the request
 
         """
-        self._logger = logging.getLogger(__name__)
-        self._api_key = api_key
-        self._key = None
-        self._method = 'GET'
-        self._logger.debug('Initialized an %s instance with the api key: %s',
-                           self.__class__.__name__, self._api_key)
+        if not self.TOKEN_PATTERN.match(token):
+            raise ValueError('The API token should be a 32 char hex digest str')
+        self.headers = {'Accept': 'application/json',
+                        'X-HockeyAppToken': token}
 
-    def execute(self):
-        """Execute the API request. If parameters are provided, join them as
-        a URI.
+    def _build_uri(self, path_parts):
+        """Return the URI for the request
 
-        :returns: an iterable or None
-        :raises APIError: if status code is not 200
+        :rtype: str
 
         """
-        status, data = _request(self._api_key, self._method, self.path, self.parameters)
-        
-        if status >= 200 and status < 300:
-            if isinstance(data, dict) and self._key:
-                return data[self._key]
-            return data
-        else:
-            if isinstance(data, dict):
-                if 'errors' in data:
-                    data = data['errors']
-                raise APIError(data)
+        return 'https://%s%s/%s' % (self.SERVER, self.BASE_URI,
+                                    '/'.join(path_parts))
 
-        return data
+    def _get(self, uri_parts=None, key=None, data=None):
+        """Get data from the API
+
+        :param list uri_parts: Parts of the URI to compose the URI
+        :param str key: The top level key of the JSON response to return
+        :param dict data: Optional query parameters for the GET
+        :rtype: list
+
+        """
+        uri = self._build_uri(uri_parts) if uri_parts else self._uri
+        LOGGER.debug('Performing HTTP GET to %s', uri)
+        return self._response(requests.get(uri,
+                                           headers=self.headers,
+                                           data=data),
+                              key or self.KEY)
+
+    def _response(self, response, key):
+        """Process the API response
+
+        :param requests.Response response: The request response
+        :param str key: The top level key of the JSON response to return
+        :rtype: list
+        :raise: hockeyapp.app.APIError
+
+        """
+        LOGGER.debug('Response status code: %s', response.status_code)
+        if 200 <= response.status_code <= 300:
+            return response.json().get(key)
+        if 'application/json' in response.headers:
+            raise APIError(response.json().get('errors'))
+        raise APIError('Not JSON')
 
     @property
-    def parameters(self):
-        """Returns the request parameters
+    def _uri(self):
+        """Return the URI for the request
 
-        :returns: dict or None
-
-        """
-        return None
-
-    @property
-    def path(self):
-        """Returns the request path
-
-        :returns: str
+        :rtype: str
 
         """
-        return BASE_URI
+        return 'https://%s%s/%s' % (self.SERVER, self.BASE_URI, self.KEY)
