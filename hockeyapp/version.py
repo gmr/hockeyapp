@@ -10,11 +10,6 @@ __since__ = '2012-03-23'
 import sys
 from . import api
 
-try:
-    import poster
-except ImportError:
-    print "You need to install poster.\n  use: sudo pip install poster\n"
-    sys.exit(1)
 
 class AppVersions(api.APIRequest):
 
@@ -108,7 +103,7 @@ class AppVersionAdd(api.APIRequest):
         :type downloadable: bool
         :param tags: Restrict download to comma separated list of tags
         :type tags: str
-    
+
         """
         api.APIRequest.__init__(self, api_key)
         self._method = 'POST'
@@ -129,7 +124,7 @@ class AppVersionAdd(api.APIRequest):
 
         """
         params = {}
-        
+
         if self._ipa:
             params['ipa'] = self._ipa
 
