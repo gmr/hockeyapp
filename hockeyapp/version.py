@@ -87,7 +87,7 @@ class AppVersionAdd(api.APIRequest):
     NOTE_TYPE_MARKDOWN = 1
     NOTE_TYPE_TEXTILE = 0
 
-    def __init__(self, api_key, app_id, ipa, dsym=None, notes = None, notes_type = 1, notify = 1, status = 2, tags = None):
+    def __init__(self, api_key, app_id, ipa, dsym=None, notes = None, notes_type = 1, notify = True, downloadable = True, tags = None):
         """Create the AppVersionAdd request object.
 
         :param api_key: HockeyApp API key
@@ -117,8 +117,8 @@ class AppVersionAdd(api.APIRequest):
         self._dsym = dsym
         self._notes = notes
         self._notes_type = notes_type
-        self._notify = notify
-        self._status = status
+        self.notify = notify
+        self.downloadable = downloadable
         self._tags = tags
 
     @property
@@ -140,9 +140,7 @@ class AppVersionAdd(api.APIRequest):
             params['notes'] = self._notes
             params['notes_type'] = self._notes_type
 
-        if not self._notify:
-            params['notify'] = self._notify
-
+        params['notify'] = self._notify
         params['status'] = self._status
 
         if self._tags:

@@ -9,34 +9,29 @@ CLI Usage
 
         ./hockeyapp-cli
 
-        ERROR: Missing API Key
-
-        Usage: hockeyapp-cli -k <api_key> [options [-i app_id] [-d crash_id]]
+        usage: hockeyapp-cli [-h] [-V] [-v] -k API_KEY COMMAND ...
 
         Hockeyapp API Client
 
-        Options:
-          --version             show program's version number and exit
+        optional arguments:
           -h, --help            show this help message and exit
-          -k API_KEY, --api-key=API_KEY
+          -V, --version         show program's version number and exit
+          -v, --verbose         turn on debug mode
+          -k API_KEY, --api-key API_KEY
                                 Supply the API Token from hockeyapp.net
-          -a, --list-applications
-                                List the applications available at HockeyApp
-          -u, --list-users      List users associated with the specified HockeyApp
-          -c, --list-crashes    List crashes associated with the specified HockeyApp
-          --add-app-user        Add a user to a HockeyApp
-          -o OFFSET, --offset=OFFSET
-                                Use an offset for the crash list
-          -i APP_ID, --app-id=APP_ID
-                                The application identifier at HockeyApp
-          -d DETAIL, --detail=DETAIL
-                                Get the detail for a crash ID at HockeyApp
-          -e EMAIL, --email=EMAIL
-                                User email address
-          -m MODE, --mode=MODE  Set the mode for retreiving the detail for a crash
-                                [log, text]
-          -v, --verbose         Turn on debug mode
 
+        commands:
+          See 'hockeyapp-cli COMMAND -h' for more information on a specific command.
+
+          COMMAND
+            list-applications   List the applications available at HockeyApp
+            list-users          List users associated with the specified HockeyApp
+            list-crashes        List crashes associated with the specified HockeyApp
+            add-app-user        Add a user to a HockeyApp
+            detail              Get the detail for a crash ID at HockeyApp
+            list-versions       List the versions of an app
+            version-delete      Delete a specified version
+            version-add         Add a new version of an app
 
 Example usage
 -------------

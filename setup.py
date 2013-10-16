@@ -24,6 +24,6 @@ setup(name='hockeyapp',
       entry_points=dict(console_scripts=['hockeyapp-cli=hockeyapp.cli:main']),
       zip_safe=True,
       install_requires=[
-        'poster'
+        'poster', 'argparse'
       ])
 
