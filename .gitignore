@@ -6,3 +6,4 @@ build
 *.egg
 .idea
 test-config.yml
+docs/_build

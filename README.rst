@@ -1,7 +1,7 @@
 HockeyApp.net Python Client
 ===========================
-Access your crash log and crash detail data for iOS applications tracked at
-hockeyapp.net.
+Access your crash log and crash detail data for iOS, Mac OSX, and Android
+applications tracked at hockeyapp.net.
 
 |PyPI version| |Downloads| |Build Status|
 

@@ -12,6 +12,12 @@ class Application(api.APIRequest):
     KEY = 'app_versions'
     PI_PATTERN = re.compile(r'[a-f0-9]{32}')
 
+    NOTES_TEXTILE = 0
+    NOTES_MARKDOWN = 1
+
+    STATUS_FORBIDDEN = 0
+    STATUS_AVAILABLE = 0
+
     def list(self):
         """List all apps for the API token, including owned apps, developer
         apps, member apps, and tester apps.
@@ -25,6 +31,9 @@ class Application(api.APIRequest):
         """Check the public identifier value passed in and ensure it's the
         proper type of value.
 
+        :param str value: The public identifier for the application
+        :raises: ValueError
+
         """
         if isinstance(value, int) or value.isdigit():
             raise ValueError('Must pass in the public_identifier value, '
@@ -37,7 +46,7 @@ class Application(api.APIRequest):
         """Get statistics about downloads, installs, and crashes for all
         versions for an application.
 
-        :param str public_identifier: The public_identifier for an app
+        :param str public_identifier: The public identifier for the application
         :rtype: list
         :raises: ValueError
 
@@ -46,11 +55,35 @@ class Application(api.APIRequest):
         return self._get(uri_parts=['apps', str(public_identifier),
                                     'statistics'])
 
+    def upload(self, public_identifier, ipa_file=None, dsym_file=None,
+               notes=None, notes_type=None, notify=False, status=1,
+               mandatory=None, tags=None, commit_sha=None,
+               build_server_url=None, repository_url=None):
+        """Upload a new version of an application to HockeyApp. There must be
+        either a ipa file or dsym file specified.
+
+        :param str public_identifier: The public identifier for the application
+        :param str ipa_file: Path to a ipa file to upload (optional)
+        :param str dsym_file: Path to a dsym file to upload (optional)
+        :param str notes: Notes for testers (optional)
+        :param int notes_type: The type of formatting for the notes (0, 1)
+        :param bool notify: Notify testers (optional)
+        :param int status: Download status (1, 2))
+        :param bool mandatory: Set version as mandatory (optional)
+        :param list tags: a list of tags to apply to the version (optional)
+        :param str commit_sha: The SCM commit sha for the version (optional)
+        :param str build_server_url: URL of the build job (optional)
+        :param str repository_url: URL to source repository (optional)
+        :raises: ValueError
+
+        """
+        pass
+
     def versions(self, public_identifier):
         """Get statistics about downloads, installs, and crashes for all
         versions for an application.
 
-        :param str public_identifier: The public_identifier for an app
+        :param str public_identifier: The public identifier for the application
         :rtype: list
         :raises: ValueError
 
