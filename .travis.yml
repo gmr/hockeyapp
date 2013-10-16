@@ -6,4 +6,6 @@ python:
     - 3.2
     - 3.3
 install:
-    - "pip install requests --use-mirrors"
+    - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install --use-mirrors argparse unittest2; fi
+    - "pip install requests mock httmock --use-mirrors"
+script: nosetests
