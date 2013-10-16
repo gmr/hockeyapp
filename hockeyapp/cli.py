@@ -8,7 +8,7 @@ import sys
 
 from hockeyapp import __version__
 from hockeyapp import api
-from hockeyapp import apps
+from hockeyapp import app
 from hockeyapp import crashes
 from hockeyapp import crashlog
 from hockeyapp import team
