@@ -1,5 +1,5 @@
 """
-Test the rabbitpy events class
+Test the base API classes
 
 """
 import mock
