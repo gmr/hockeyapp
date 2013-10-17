@@ -4,6 +4,8 @@ API and command-line client for managing applications, users, and crashes at Hoc
 
 |PyPI version| |Downloads| |Build Status|
 
+Python Versions: 2.6, 2.7, 3.2, 3.3
+
 CLI Usage
 ---------
 
@@ -38,13 +40,15 @@ Example usage
 
         import hockeyapp
 
-        token = 'Your API Key'
-        public_identifier = 'Public identifier value for the app'
-        crash_id = 1234
+        token = 'abcdef0123456789abcdef0123456789'             # The HockeyApp API Auth Token
+        public_identifier = '0123456789abcdef0123456789abcdef' # The public identifier app id
 
-        app = hockeyapp.Application(token)
-        print app.list()
-        print app.statistics(public_identifier)
+        apps = hockeyapp.Applications(token)
+        print apps.list()
+
+        app = hockeyapp.Application(token, public_identifier)
+        print app.statistics()
+        print app.versions()
 
 
 .. |PyPI version| image:: https://badge.fury.io/py/hockeyapp.png

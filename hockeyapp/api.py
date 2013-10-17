@@ -11,6 +11,7 @@ LOGGER = logging.getLogger(__name__)
 
 class APIError(Exception):
     """Raised when the Hockeyapp API returns an error for a request"""
+
     def __repr__(self):
         """Return a representation of the exception
 
@@ -27,7 +28,7 @@ class APIError(Exception):
 
         """
         return ', '.join(['[%s]: %s' %
-                          (key, ', '.join(self.args[0][key]))
+                          (key, self.args[0][key])
                           for key in self.args[0]])
 
 
@@ -60,8 +61,22 @@ class APIRequest(object):
         return 'https://%s%s/%s' % (self.SERVER, self.BASE_URI,
                                     '/'.join(path_parts))
 
-    def _get(self, uri_parts=None, data=None):
-        """Get data from the API
+    def _delete(self, uri_parts, data=None):
+        """Delete data from the API
+
+        :param list uri_parts: Parts of the URI to compose the URI
+        :param dict data: Optional query parameters for the DELETE
+        :rtype: list or dict
+
+        """
+        uri = self._build_uri(uri_parts) if uri_parts else self._uri
+        LOGGER.debug('Performing HTTP DELETE to %s', uri)
+        return self._response(requests.delete(uri,
+                                              headers=self.headers,
+                                              data=data))
+
+    def _get(self, uri_parts, data=None):
+        """Post data to the API
 
         :param list uri_parts: Parts of the URI to compose the URI
         :param dict data: Optional query parameters for the GET
@@ -74,6 +89,22 @@ class APIRequest(object):
                                            headers=self.headers,
                                            data=data))
 
+    def _post(self, uri_parts=None, data=None, files=None):
+        """Get data from the API
+
+        :param list uri_parts: Parts of the URI to compose the URI
+        :param dict data: Optional query parameters for the POST
+        :param dict files: A dictionary of field name and open file handles
+        :rtype: list or dict
+
+        """
+        uri = self._build_uri(uri_parts) if uri_parts else self._uri
+        LOGGER.debug('Performing HTTP POST to %s', uri)
+        return self._response(requests.post(uri,
+                                            headers=self.headers,
+                                            data=data,
+                                            files=files))
+
     def _response(self, response):
         """Process the API response
 
@@ -83,13 +114,14 @@ class APIRequest(object):
 
         """
         LOGGER.debug('Response status code: %s', response.status_code)
+        LOGGER.debug('Headers: %r', response.headers)
         if 200 <= response.status_code <= 300:
             if 'application/json' in response.headers['Content-Type']:
                 return response.json()
             return response.content
         if response.status_code == 404:
-            raise APIError({'404': ['URL Not Found: %s' % response.url]})
-        if 'application/json' in response.headers:
+            raise APIError({'404': 'URL Not Found: %s' % response.url})
+        if 'application/json' in response.headers['Content-Type']:
             raise APIError(response.json().get('errors'))
         LOGGER.debug(response.content)
         raise APIError('Not JSON')
