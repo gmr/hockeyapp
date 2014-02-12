@@ -64,7 +64,6 @@ class Application(api.APIRequest):
     STATUS_FORBIDDEN = 0
     STATUS_AVAILABLE = 0
 
-
     VALID_PLATFORMS = [PLATFORM_ANDROID, PLATFORM_CUSTOM, PLATFORM_IOS,
                        PLATFORM_OSX, PLATFORM_WINDOWS_PHONE]
     VALUE_RELEASE = [RELEASE_ALPHA, RELEASE_BETA, RELEASE_LIVE]
@@ -384,9 +383,6 @@ class Application(api.APIRequest):
 
         """
         files = {}
-
-        import httplib
-        httplib.HTTPConnection.debuglevel = 1
 
         if ipa_file:
             if not os.path.exists(ipa_file):
