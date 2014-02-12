@@ -3,8 +3,11 @@ Implements an object for calling the Application List API
 
 """
 import collections
+import os
 import re
+import tempfile
 import warnings
+import zipfile
 
 from hockeyapp import api
 
@@ -349,7 +352,8 @@ class Application(api.APIRequest):
     def upload(self, ipa_file=None, dsym_file=None,
                notes=None, notes_type=None, notify=False, status=1,
                mandatory=None, tags=None, commit_sha=None,
-               build_server_url=None, repository_url=None):
+               build_server_url=None, repository_url=None,
+               release_type=None):
         """Upload an .ipa, .apk, or .zip file to create a new app. If an app
         with the same bundle identifier or package name and the same release
         type already exists, the uploaded file is assigned to this existing
@@ -363,7 +367,7 @@ class Application(api.APIRequest):
 
         :param str ipa_file: Path to a ipa file  optional (required, if dsym is
             not specified for iOS or Mac).
-        :param str dsym_file: optional, file path of the .dSYM.zip file (iOS
+        :param str dsym_file: optional, file path of the .dSYM folder (iOS
             and Mac) or mapping.txt (Android)
         :param str notes: Notes for testers (optional)
         :param int notes_type: The type of formatting for the notes (0, 1)
@@ -374,11 +378,74 @@ class Application(api.APIRequest):
         :param str commit_sha: The SCM commit sha for the version (optional)
         :param str build_server_url: URL of the build job (optional)
         :param str repository_url: URL to source repository (optional)
-        :rtype: bool
+        :param int release_type: 2 for alpha, 0 for beta, 1 for live (optional)
+        :return str: app_id public identifier
         :raises: ValueError
 
         """
-        pass
+        files = {}
+
+        import httplib
+        httplib.HTTPConnection.debuglevel = 1
+
+        if ipa_file:
+            if not os.path.exists(ipa_file):
+                raise ValueError('File not found: %s' % ipa_file)
+            ipa = open(ipa_file, 'rb')
+            ipa_file_name = os.path.split(ipa_file)[1]
+            files["ipa"] = (ipa_file_name, ipa)
+
+        if dsym_file:
+            if not os.path.exists(dsym_file):
+                raise ValueError('File not found: %s' % dsym_file)
+            dsym_file_name = os.path.split(dsym_file)[1]
+            if "dSYM" in dsym_file and os.path.isdir(dsym_file):
+                dsym_zip = tempfile.NamedTemporaryFile(delete=False)
+                z = zipfile.ZipFile(dsym_zip, 'w')
+                rootlen = len(os.path.split(dsym_file)[0]) + 1
+                for base, dirs, list_files in os.walk(dsym_file):
+                    for f in list_files:
+                        fn = os.path.join(base, f)
+                        z.write(fn, fn[rootlen:])
+                z.close()
+                dsym_zip.seek(0)
+                files["dsym"] = (dsym_file_name + '.zip', dsym_zip)
+            else:
+                files["dsym"] = (dsym_file_name, dsym_file)
+
+        data = {}
+
+        validation_map = {
+            "notes": (notes, str, None),
+            "notes_type": (notes_type, int, [0, 1]),
+            "notify": (notify, int, [0, 1]),
+            "status": (status, int, [1, 2]),
+            "mandatory": (mandatory, int, [0, 1]),
+            "tags": (tags, list, None),
+            "commit_sha": (commit_sha, str, None),
+            "build_server_url": (build_server_url, str, None),
+            "repository_url": (repository_url, str, None),
+            "release_type": (release_type, int, [0, 1, 2]),
+        }
+
+        for key in validation_map:
+            val, t, valids = validation_map[key]
+            if val:
+                if type(val) is not t:
+                    ValueError('Invalid type for `%s`' % key)
+                if valids and val not in valids:
+                    ValueError('Invalid value for `%s`' % key)
+                data[key] = val
+
+        try:
+            response = self._post(uri_parts=['apps', 'upload'],
+                                  data=data,
+                                  files=files)
+        except api.APIError as error:
+            raise error
+
+        self._app_id = response['public_identifier']
+        return response['public_identifier']
 
     def update_crash_reason(self, reason_id, status=None, ticket_url=None):
         """Update a crash reason grouping with an optional status flag and
