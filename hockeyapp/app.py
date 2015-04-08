@@ -171,7 +171,6 @@ class Application(api.APIRequest):
                                    'page': offset,
                                    'per_page': limit,
                                    'order': order})
-        print response
         return CrashGroups(response.get('crash_reasons', []),
                            response.get('total_entries', 0),
                            response.get('total_pages', 0),
