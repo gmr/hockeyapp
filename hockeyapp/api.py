@@ -19,7 +19,7 @@ class APIError(Exception):
 
         """
         return '<%s [%s]>' % (self.__class__.__name__,
-                              ', '.join(self.args[0].keys()))
+                              ', '.join(sorted(self.args[0].keys())))
 
     def __str__(self):
         """ Format exception data
@@ -27,9 +27,9 @@ class APIError(Exception):
         :returns: the string representation of the error
 
         """
-        return ', '.join(['[%s]: %s' %
+        return ', '.join(sorted(['[%s]: %s' %
                           (key, self.args[0][key])
-                          for key in self.args[0]])
+                          for key in self.args[0]]))
 
 
 class APIRequest(object):
@@ -40,6 +40,7 @@ class APIRequest(object):
     SERVER = 'rink.hockeyapp.net'
     BASE_URI = '/api/2'
     TOKEN_PATTERN = re.compile('[a-f0-9]{32}')
+    KEY = 'override_me'
 
     def __init__(self, token):
         """Construct the APIRequestObject

@@ -53,7 +53,7 @@ def parse_args():
                                                    'specific command.')
 
     def show(request):
-        print request.execute()
+        print(request.execute())
 
     la = subparsers.add_parser('list-applications',
                                help='List the applications available')
