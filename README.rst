@@ -2,6 +2,8 @@ HockeyApp Python Client
 =======================
 API and command-line client for managing applications, users, and crashes at HockeyApp.
 
+:boom:**Important**:boom: This project is deprecated and no longer maintained. If you'd like to take it over, please contact me.
+
 |PyPI version| |Downloads| |Build Status|
 
 Python Versions: 2.6, 2.7, 3.2, 3.3
